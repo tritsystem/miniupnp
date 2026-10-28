@@ -1620,6 +1620,7 @@ get_portmappings_in_range(unsigned short startport, unsigned short endport,
 #ifdef USE_LIBPFCTL
 	struct pfctl_rules_info ri;
 	struct pfctl_rule rule;
+	char anchor_call[MAXPATHLEN] = "";
 #define RULE (rule)
 #else /* USE_LIBPFCTL */
 	struct pfioc_rule pr;
@@ -1666,6 +1667,11 @@ get_portmappings_in_range(unsigned short startport, unsigned short endport,
 	for(i=0; i<n; i++)
 	{
 #ifdef USE_LIBPFCTL
+		if(pfctl_get_rule(dev, i, ri.ticket, anchor_name, PF_RDR, &rule, anchor_call) < 0)
+		{
+			syslog(LOG_ERR, "pfctl_get_rule: %m");
+			continue;
+		}
 #else /* USE_LIBPFCTL */
 		pr.nr = i;
 		if(ioctl(dev, DIOCGETRULE, &pr) < 0)
